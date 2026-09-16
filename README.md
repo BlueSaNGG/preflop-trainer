@@ -12,7 +12,8 @@ This app treats preflop like flashcards: real 6-max spots, standard ranges, inst
 
 ## Features
 
-- **49 curated spots** across three scenarios: raise-first-in, facing an open, facing a 3-bet — plus short-stack (20–40bb) adjustments
+- **73 curated spots** across six scenarios: raise-first-in, facing an open, facing a 3-bet, blind-vs-blind, squeeze spots, facing a 4-bet — plus short-stack (20–40bb) adjustments
+- **Spaced repetition** — missed spots resurface first in your next drill (marked ↻ review) until you nail them
 - **Instant feedback** — every answer explained in one crisp line
 - **Streaks & accuracy** — session stats broken down by scenario so you see where you leak
 - **Drill lengths** — 10, 20, or endless
