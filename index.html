@@ -337,10 +337,10 @@ function renderProgress(){
 const qkey = q => q.pos+'|'+q.hand.join('')+'|'+q.facing;
 function getMisses(){ try{ return JSON.parse(localStorage.getItem('ic_pf_misses')||'{}'); }catch(e){ return {}; } }
 function getStats(){ try{ return JSON.parse(localStorage.getItem('ic_pf_stats')||'{}'); }catch(e){ return {}; } }
-function saveStats(s){ localStorage.setItem('ic_pf_stats', JSON.stringify(s)); }
+function saveStats(s){ try{ localStorage.setItem('ic_pf_stats', JSON.stringify(s)); }catch(e){} }
 function getHist(){ try{ return JSON.parse(localStorage.getItem('ic_pf_hist')||'{}'); }catch(e){ return {}; } }
-function saveHist(h){ localStorage.setItem('ic_pf_hist', JSON.stringify(h)); }
-function saveMisses(m){ localStorage.setItem('ic_pf_misses', JSON.stringify(m)); }
+function saveHist(h){ try{ localStorage.setItem('ic_pf_hist', JSON.stringify(h)); }catch(e){} }
+function saveMisses(m){ try{ localStorage.setItem('ic_pf_misses', JSON.stringify(m)); }catch(e){} }
 function buildDeck(pool){
   const misses = getMisses();
   const missQs = pool.filter(q=>misses[qkey(q)]).map(q=>({...q,_review:true}));
@@ -377,7 +377,8 @@ function cardHTML(c){
 }
 function renderQ(){
   const q=deck[idx]; locked=false;
-  $('hudProg').innerHTML = drillLen? `Q <b>${idx+1}</b>/${drillLen}` : `Q <b>${idx+1}</b>`;
+  const qTotal = drillLen ? Math.min(drillLen, deck.length) : deck.length;
+  $('hudProg').innerHTML = `Q <b>${idx+1}</b>/${qTotal}`;
   $('hudStreak').innerHTML=`🔥 <b>${streak}</b>`;
   $('hudStreak').classList.toggle('hot',streak>=3);
   $('hudAcc').innerHTML = idx? `<b>${Math.round(right/idx*100)}%</b> acc` : `<b>–</b> acc`;
@@ -424,7 +425,7 @@ function answer(a,btn){
 }
 $('nextBtn').addEventListener('click',()=>{
   idx++;
-  const done = drillLen ? idx>=drillLen : idx>=deck.length;
+  const done = drillLen ? (idx>=drillLen || idx>=deck.length) : idx>=deck.length;
   if(done) summary(); else renderQ();
 });
 const CATNAMES={rfi:'Raise first in',vsopen:'Facing an open',vs3bet:'Facing a 3-bet',bvb:'Blind vs blind',squeeze:'Squeeze spots',vs4bet:'Facing a 4-bet'};
@@ -455,7 +456,7 @@ function summary(){
   const asked=right+sessionMisses.length;
   const h=getHist(); const dk=new Date().toISOString().slice(0,10);
   const e=h[dk]||{a:0,r:0}; e.a+=asked; e.r+=right; h[dk]=e; saveHist(h);
-  const n = drillLen? drillLen : deck.length;
+  const n = idx;
   const acc=Math.round(right/n*100);
   $('stAcc').textContent=acc+'%'; $('stStreak').textContent=best; $('stQ').textContent=n;
   $('sumLine').textContent = acc>=85 ? 'Crushing it. Your preflop game is solid.'
