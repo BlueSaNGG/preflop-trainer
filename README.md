@@ -18,9 +18,17 @@ This app treats preflop like flashcards: real 6-max spots, standard ranges, inst
 - **Drill lengths** — 10, 20, or endless
 - **Mobile-first** — big touch targets, works on the train
 
-## Ranges
+## Ranges — verified, not vibes
 
-Spots use standard 6-max GTO-ish ranges (public knowledge, e.g. published RFI/3-bet charts). Each question has one clear, defensible answer — borderline solver-mixed spots are deliberately excluded from v1.
+Every spot in the bank was cross-checked against published solver-based ranges:
+
+- **RFI, BB defense, BTN-vs-CO, and 20bb/40bb MTT ranges** (6-max 100bb cash + MTT): [Preflop Wizard's free GTO preflop charts](https://www.preflopwizard.app/blog/preflop-charts)
+- **Facing a 3-bet**: standard solver consensus — the spots where solvers agree (AK/QQ 4-bet; AQ/TT/KQ/JJ call; AJ/76s fold), not the mixed ones
+
+Deliberate simplifications, because this is a training tool:
+
+- **Mixed-frequency hands are excluded.** e.g. UTG A5s (solvers mix ~40% raise / 60% fold) doesn't belong in a quiz with one right answer — only pure spots are asked.
+- **Short-stack math spots** (e.g. folding 55 at 40bb for lack of implied odds) follow standard poker math rather than a specific chart.
 
 ## Local development
 
