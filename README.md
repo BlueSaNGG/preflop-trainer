@@ -26,11 +26,11 @@ This app treats preflop like flashcards: real 6-max spots, standard ranges, inst
 
 ## Ranges — verified, not vibes
 
-Every spot in the bank was cross-checked against published solver-based ranges:
+Three confidence tiers, labeled on every spot:
 
-- **RFI, BB defense, BTN-vs-CO, and 20bb/40bb MTT ranges** (6-max 100bb cash + MTT): [Preflop Wizard's free GTO preflop charts](https://www.preflopwizard.app/blog/preflop-charts)
-- **Facing a 3-bet / 4-bet, squeeze, blind-vs-blind**: standard solver consensus and coaching standard — the spots where solvers agree, not the mixed ones
-- Confidence split across the bank: 42 chart-verified · 30 solver consensus · 1 poker math
+- **✓ chart-verified (42)** — RFI, BB defense, BTN-vs-CO, and 20bb/40bb MTT ranges (6-max 100bb cash + MTT) taken directly from [Preflop Wizard's free GTO preflop charts](https://www.preflopwizard.app/blog/preflop-charts)
+- **solver consensus (30)** — facing a 3-bet / 4-bet, squeeze, blind-vs-blind: the spots where solvers and coaching standards agree, not the mixed-frequency ones
+- **poker math (1)** — short-stack math spots that follow standard poker math rather than a specific chart
 
 Deliberate simplifications, because this is a training tool:
 
