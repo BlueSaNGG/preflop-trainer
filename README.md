@@ -14,7 +14,9 @@ This app treats preflop like flashcards: real 6-max spots, standard ranges, inst
 
 - **73 curated spots** across six scenarios: raise-first-in, facing an open, facing a 3-bet, blind-vs-blind, squeeze spots, facing a 4-bet — plus short-stack (20–40bb) adjustments
 - **Spaced repetition** — missed spots resurface first in your next drill (marked ↻ review) until you nail them
-- **Instant feedback** — every answer explained in one crisp line
+- **Detailed explanations** — every answer gets 2–3 sentences: the principle, why it applies, and the common mistake
+- **Source transparency** — each answer tagged ✓ chart-verified, solver consensus, or poker math, so you know how much to trust it
+- **Miss review** — session summary lists every spot you missed with the full explanation
 - **Streaks & accuracy** — session stats broken down by scenario so you see where you leak
 - **Drill lengths** — 10, 20, or endless
 - **Mobile-first** — big touch targets, works on the train
@@ -24,7 +26,8 @@ This app treats preflop like flashcards: real 6-max spots, standard ranges, inst
 Every spot in the bank was cross-checked against published solver-based ranges:
 
 - **RFI, BB defense, BTN-vs-CO, and 20bb/40bb MTT ranges** (6-max 100bb cash + MTT): [Preflop Wizard's free GTO preflop charts](https://www.preflopwizard.app/blog/preflop-charts)
-- **Facing a 3-bet**: standard solver consensus — the spots where solvers agree (AK/QQ 4-bet; AQ/TT/KQ/JJ call; AJ/76s fold), not the mixed ones
+- **Facing a 3-bet / 4-bet, squeeze, blind-vs-blind**: standard solver consensus and coaching standard — the spots where solvers agree, not the mixed ones
+- Confidence split across the bank: 42 chart-verified · 30 solver consensus · 1 poker math
 
 Deliberate simplifications, because this is a training tool:
 
