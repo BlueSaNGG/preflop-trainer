@@ -129,6 +129,8 @@ footer a{color:var(--gold)}
         <button class="modebtn" data-mode="rfi">Raise first in<small>unopened pots</small></button>
         <button class="modebtn" data-mode="vsopen">Facing an open<small>3-bet / call / fold</small></button>
         <button class="modebtn" data-mode="vs3bet">Facing a 3-bet<small>4-bet / call / fold</small></button>
+        <button class="modebtn" data-mode="bvb">Blind vs blind<small>SB/BB battles</small></button>
+        <button class="modebtn" data-mode="pressure">Squeeze & 4-bet<small>advanced spots</small></button>
       </div>
       <div class="modelabel">Drill length</div>
       <div class="lenrow" id="lenBtns">
@@ -151,6 +153,7 @@ footer a{color:var(--gold)}
       <div class="posrow">
         <span class="posbadge" id="posBadge">CO</span>
         <span class="stackbadge" id="stackBadge">100bb effective</span>
+        <span class="posbadge" id="reviewBadge" style="display:none;background:rgba(192,57,43,.18);border-color:var(--red);color:#ef9a8f">↻ review</span>
       </div>
       <div class="cards" id="cards"></div>
       <div class="actionline" id="actionLine"></div>
@@ -239,6 +242,35 @@ const BANK=[
  {cat:'rfi',pos:'CO',hand:['2h','2c'],stack:40,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'22 still opens at 40bb from the CO. Short, but not that short.'},
  {cat:'rfi',pos:'BTN',hand:['As','9s'],stack:40,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'A9s is a comfortable button open at 40bb.'},
  {cat:'vsopen',pos:'BB',hand:['Kc','Js'],stack:40,facing:'BTN opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'3-bet',why:'At 40bb, KJs becomes a 3-bet from the BB — shorter stacks favor aggression over calling.'},
+ // ---- blind vs blind ----
+ {cat:'bvb',pos:'BB',hand:['As','Ac'],stack:100,facing:'SB opens to 3bb',actions:['3-bet','Call','Fold'],correct:'3-bet',why:'Aces 3-bet from anywhere. Build the pot vs the wide SB range.'},
+ {cat:'bvb',pos:'BB',hand:['2h','2d'],stack:100,facing:'SB opens to 3bb',actions:['3-bet','Call','Fold'],correct:'Call',why:'Closing action with a discount — set-mine the small pair, 100bb deep.'},
+ {cat:'bvb',pos:'BB',hand:['7s','6s'],stack:100,facing:'SB opens to 3bb',actions:['3-bet','Call','Fold'],correct:'Call',why:'Suited connectors defend the BB vs a wide SB open — cheap, playable, closing action.'},
+ {cat:'bvb',pos:'SB',hand:['Ks','Kd'],stack:100,facing:'You open SB, BB 3-bets to 10bb',actions:['4-bet','Call','Fold'],correct:'4-bet',why:'KK 4-bets even out of position — too strong to flat, never folding.'},
+ {cat:'bvb',pos:'SB',hand:['As','5s'],stack:100,facing:'You open SB, BB 3-bets to 10bb',actions:['4-bet','Call','Fold'],correct:'Fold',why:'Your steal got raised and you are out of position with ace-high. Fold and move on.'},
+ // ---- squeeze spots ----
+ {cat:'squeeze',pos:'BTN',hand:['As','Qs'],stack:100,facing:'CO opens to 2.5bb, MP calls',actions:['Squeeze','Call','Fold'],correct:'Squeeze',why:'AQs squeezes for value — dead money in the middle plus fold equity vs two ranges.'},
+ {cat:'squeeze',pos:'SB',hand:['Ah','Kd'],stack:100,facing:'BTN opens to 2.5bb, BB calls',actions:['Squeeze','Call','Fold'],correct:'Squeeze',why:'AKo squeezes from the SB — fold equity plus the best non-pair hand when called.'},
+ {cat:'squeeze',pos:'BB',hand:['As','5s'],stack:100,facing:'UTG opens to 2.5bb, MP calls',actions:['Squeeze','Call','Fold'],correct:'Squeeze',why:'The textbook squeeze bluff — ace blocker, dead money, and UTG can rarely continue.'},
+ {cat:'squeeze',pos:'BTN',hand:['Jh','Jd'],stack:100,facing:'MP opens to 2.5bb, CO calls',actions:['Squeeze','Call','Fold'],correct:'Squeeze',why:'JJ squeezes for value — charge the caller and isolate the opener.'},
+ {cat:'squeeze',pos:'CO',hand:['As','Ks'],stack:100,facing:'UTG opens to 2.5bb, MP calls',actions:['Squeeze','Call','Fold'],correct:'Squeeze',why:'AKs is a premium squeeze — value now, and the best drawing hand if called.'},
+ // ---- facing a 4-bet ----
+ {cat:'vs4bet',pos:'BTN',hand:['Ks','Kh'],stack:100,facing:'You 3-bet BTN vs CO, CO 4-bets to 22bb',actions:['Shove','Call','Fold'],correct:'Shove',why:'KK never folds to a 4-bet at 100bb. Jam and let QQ/AK pay you.'},
+ {cat:'vs4bet',pos:'SB',hand:['Qh','Qd'],stack:100,facing:'You 3-bet SB vs BTN, BTN 4-bets to 22bb',actions:['Shove','Call','Fold'],correct:'Shove',why:'QQ shoves over the 4-bet — the BTN 4-bet range includes AK and worse pairs you dominate.'},
+ {cat:'vs4bet',pos:'BB',hand:['As','5s'],stack:100,facing:'You 3-bet BB vs BTN, BTN 4-bets to 22bb',actions:['Shove','Call','Fold'],correct:'Fold',why:'Your bluff got raised. A5s has no equity vs a 4-bet range — fold, bluffs are allowed to fail.'},
+ {cat:'vs4bet',pos:'CO',hand:['Jc','Jh'],stack:100,facing:'You 3-bet CO vs MP, MP 4-bets to 22bb',actions:['Shove','Call','Fold'],correct:'Fold',why:'JJ is crushed by 4-bet ranges (QQ+/AK). The disciplined fold — set-mining odds are long gone.'},
+ {cat:'vs4bet',pos:'BTN',hand:['As','Qd'],stack:100,facing:'You 3-bet BTN vs CO, CO 4-bets to 22bb',actions:['Shove','Call','Fold'],correct:'Fold',why:'AQs plays great vs a 3-bet range but folds to a 4-bet — dominated by QQ+/AK too often.'},
+ // ---- more vs 3-bet ----
+ {cat:'vs3bet',pos:'MP',hand:['Ah','Kd'],stack:100,facing:'You open MP, SB 3-bets to 10bb',actions:['4-bet','Call','Fold'],correct:'4-bet',why:'AKo 4-bets vs the SB 3-bet — ahead of their bluffs, flipping with pairs, never folding.'},
+ {cat:'vs3bet',pos:'MP',hand:['Ts','Th'],stack:100,facing:'You open MP, BB 3-bets to 10bb',actions:['4-bet','Call','Fold'],correct:'Call',why:'TT calls in position vs the 3-bet — set-mine plus overpair equity, no need to bloat.'},
+ {cat:'vs3bet',pos:'BTN',hand:['Kc','Qs'],stack:100,facing:'You open BTN, SB 3-bets to 10bb',actions:['4-bet','Call','Fold'],correct:'Call',why:'KQs continues in position vs the SB 3-bet — too strong to fold, not strong enough to 4-bet.'},
+ // ---- more RFI ----
+ {cat:'rfi',pos:'UTG',hand:['Kc','Qs'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'KQs is a premium suited broadway — opens from every position.'},
+ {cat:'rfi',pos:'MP',hand:['Ks','Ts'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'KTs+ opens from MP — suited broadways play well with fewer players behind.'},
+ {cat:'rfi',pos:'CO',hand:['8s','7s'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'87s is a standard CO open — steal equity plus a hand that flops well.'},
+ {cat:'rfi',pos:'BTN',hand:['Td','9c'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'T9o is inside the ~42% button range — connected hands open here.'},
+ {cat:'rfi',pos:'BTN',hand:['5s','4s'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'54s opens on the button — suited connectors are button staples.'},
+ {cat:'rfi',pos:'SB',hand:['Jd','Tc'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'JTo opens from the SB — the ~36% SB range includes all broadways.'},
 ];
 
 /* ================= app ================= */
@@ -256,9 +288,23 @@ document.querySelectorAll('#lenBtns .modebtn').forEach(b=>b.addEventListener('cl
 }));
 function show(v){ document.querySelectorAll('.view').forEach(x=>x.classList.remove('active')); $('v-'+v).classList.add('active'); }
 
+/* spaced repetition: misses resurface first */
+const qkey = q => q.pos+'|'+q.hand.join('')+'|'+q.facing;
+function getMisses(){ try{ return JSON.parse(localStorage.getItem('ic_pf_misses')||'{}'); }catch(e){ return {}; } }
+function saveMisses(m){ localStorage.setItem('ic_pf_misses', JSON.stringify(m)); }
+function buildDeck(pool){
+  const misses = getMisses();
+  const missQs = pool.filter(q=>misses[qkey(q)]).map(q=>({...q,_review:true}));
+  const rest = pool.filter(q=>!misses[qkey(q)]).sort(()=>Math.random()-.5);
+  const first = missQs.sort(()=>Math.random()-.5).slice(0,4);
+  const leftover = missQs.slice(4).sort(()=>Math.random()-.5);
+  const merged = rest.slice();
+  leftover.forEach(q=>merged.splice(Math.floor(Math.random()*(merged.length+1)),0,q));
+  return first.concat(merged);
+}
 $('startBtn').addEventListener('click',()=>{
-  const pool = mode==='mixed' ? BANK.slice() : BANK.filter(q=>q.cat===mode);
-  deck = pool.sort(()=>Math.random()-.5);
+  const pool = mode==='mixed' ? BANK.slice() : mode==='pressure' ? BANK.filter(q=>q.cat==='squeeze'||q.cat==='vs4bet') : BANK.filter(q=>q.cat===mode);
+  deck = buildDeck(pool);
   idx=0; right=0; streak=0; best=0; catStats={};
   show('drill'); renderQ();
 });
@@ -276,6 +322,7 @@ function renderQ(){
   $('hudStreak').classList.toggle('hot',streak>=3);
   $('hudAcc').innerHTML = idx? `<b>${Math.round(right/idx*100)}%</b> acc` : `<b>–</b> acc`;
   $('posBadge').textContent='HERO · '+q.pos;
+  $('reviewBadge').style.display = q._review ? 'inline-block' : 'none';
   $('stackBadge').textContent=q.stack+'bb effective';
   $('cards').innerHTML=q.hand.map(cardHTML).join('');
   $('actionLine').innerHTML=q.facing.replace(/(opens|3-bets)/,'<span class="gold">$1</span>');
@@ -296,7 +343,11 @@ function answer(a,btn){
     else c.classList.add('dim');
   });
   $('choices').classList.add('locked');
-  if(ok){ right++; streak++; best=Math.max(best,streak); } else streak=0;
+  if(ok){ right++; streak++; best=Math.max(best,streak);
+    const m=getMisses(); if(m[qkey(q)]){ delete m[qkey(q)]; saveMisses(m); }
+  } else { streak=0;
+    const m=getMisses(); m[qkey(q)]=(m[qkey(q)]||0)+1; saveMisses(m);
+  }
   catStats[q.cat]=catStats[q.cat]||{r:0,n:0}; catStats[q.cat].n++; if(ok) catStats[q.cat].r++;
   const fb=$('feedback');
   fb.className='feedback show '+(ok?'good':'bad');
@@ -313,7 +364,7 @@ $('nextBtn').addEventListener('click',()=>{
   const done = drillLen ? idx>=drillLen : idx>=deck.length;
   if(done) summary(); else renderQ();
 });
-const CATNAMES={rfi:'Raise first in',vsopen:'Facing an open',vs3bet:'Facing a 3-bet'};
+const CATNAMES={rfi:'Raise first in',vsopen:'Facing an open',vs3bet:'Facing a 3-bet',bvb:'Blind vs blind',squeeze:'Squeeze spots',vs4bet:'Facing a 4-bet'};
 function summary(){
   show('sum');
   const n = drillLen? drillLen : deck.length;
