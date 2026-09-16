@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Preflop Trainer — Drill until it's automatic</title>
+<meta name="description" content="A free, mobile-friendly Texas Hold'em preflop decision trainer. No solver needed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --felt:#0c3527; --felt-deep:#07231a; --felt-line:rgba(240,230,200,.16);
+  --cream:#f4ecd8; --cream-dim:rgba(244,236,216,.62); --cream-faint:rgba(244,236,216,.38);
+  --gold:#d9a441; --gold-deep:#b07f24;
+  --red:#c0392b; --green:#2e9e5b;
+  --card-w:92px; --card-h:128px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:radial-gradient(120% 90% at 50% 0%, #10503a 0%, var(--felt) 45%, var(--felt-deep) 100%);
+  color:var(--cream);font-family:'Fraunces',Georgia,serif;min-height:100vh;min-height:100dvh;
+  display:flex;flex-direction:column;align-items:center;padding:20px 14px 40px}
+.wrap{width:100%;max-width:560px}
+header{text-align:center;padding:26px 0 6px}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:.68rem;font-weight:600;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--gold);border:1px solid var(--gold-deep);border-radius:99px;
+  padding:7px 16px 6px;display:inline-block;margin-bottom:16px}
+h1{font-size:clamp(2rem,7vw,2.9rem);font-weight:700;letter-spacing:-.01em;line-height:1.02}
+.sub{color:var(--cream-dim);font-size:1.02rem;margin-top:10px;font-style:italic}
+.view{display:none;animation:fadeUp .35s ease}
+.view.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* setup */
+.panel{background:rgba(0,0,0,.28);border:1px solid var(--felt-line);border-radius:14px;
+  padding:24px 22px;margin-top:22px;backdrop-filter:blur(2px)}
+.panel h2{font-size:1.25rem;margin-bottom:4px}
+.panel .hint{color:var(--cream-dim);font-size:.95rem;margin-bottom:16px}
+.modelabel{font-family:'IBM Plex Mono',monospace;font-size:.68rem;font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--cream-faint);margin:18px 0 10px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modebtn{font-family:'IBM Plex Mono',monospace;font-size:.82rem;font-weight:600;padding:16px 10px;
+  border-radius:10px;border:1.5px solid var(--felt-line);background:rgba(255,255,255,.04);
+  color:var(--cream);cursor:pointer;transition:all .15s}
+.modebtn small{display:block;font-weight:400;color:var(--cream-dim);font-size:.72rem;margin-top:4px}
+.modebtn.sel{border-color:var(--gold);background:rgba(217,164,65,.14);box-shadow:0 0 0 1px var(--gold)}
+.lenrow{display:flex;gap:10px}
+.lenrow .modebtn{flex:1}
+.bigbtn{width:100%;margin-top:22px;font-family:'IBM Plex Mono',monospace;font-size:.9rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;padding:18px;border:none;border-radius:12px;
+  background:linear-gradient(180deg,var(--gold),var(--gold-deep));color:#1d1503;cursor:pointer;
+  box-shadow:0 6px 20px rgba(217,164,65,.35)}
+.bigbtn:active{transform:scale(.98)}
+
+/* drill */
+.hud{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 0;
+  font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:var(--cream-dim)}
+.hud b{color:var(--cream)}
+.streak.hot{color:var(--gold);font-weight:700}
+.spot{background:rgba(0,0,0,.32);border:1px solid var(--felt-line);border-radius:16px;
+  margin-top:12px;padding:26px 20px 22px;text-align:center}
+.posrow{display:flex;justify-content:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.posbadge{font-family:'IBM Plex Mono',monospace;font-size:.7rem;font-weight:700;letter-spacing:.1em;
+  padding:7px 13px 6px;border-radius:99px;background:rgba(217,164,65,.16);border:1px solid var(--gold-deep);color:var(--gold)}
+.stackbadge{font-family:'IBM Plex Mono',monospace;font-size:.7rem;font-weight:600;letter-spacing:.1em;
+  padding:7px 13px 6px;border-radius:99px;border:1px solid var(--felt-line);color:var(--cream-dim)}
+.cards{display:flex;justify-content:center;gap:14px;margin:6px 0 18px}
+.pcard{width:var(--card-w);height:var(--card-h);background:linear-gradient(160deg,#fffdf4,#efe6cf);
+  border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#1c1a16;box-shadow:0 8px 22px rgba(0,0,0,.45);animation:deal .3s ease;position:relative}
+@keyframes deal{from{opacity:0;transform:translateY(-16px) rotate(-4deg)}to{opacity:1;transform:none}}
+.pcard .rank{font-size:2.1rem;font-weight:700;line-height:1;font-family:'Fraunces',Georgia,serif}
+.pcard .suit{font-size:1.7rem;line-height:1.2}
+.pcard.red{color:var(--red)}
+.actionline{font-size:1.28rem;font-weight:600;margin-bottom:4px}
+.actionline .gold{color:var(--gold)}
+.question{color:var(--cream-dim);font-style:italic;margin-bottom:20px}
+.choices{display:grid;gap:10px}
+.choice{font-family:'IBM Plex Mono',monospace;font-size:.95rem;font-weight:700;letter-spacing:.06em;
+  padding:17px;border-radius:12px;border:1.5px solid var(--felt-line);background:rgba(255,255,255,.05);
+  color:var(--cream);cursor:pointer;transition:all .15s;text-transform:uppercase}
+.choice:active{transform:scale(.98)}
+.choice.right{border-color:var(--green);background:rgba(46,158,91,.22);box-shadow:0 0 0 1px var(--green)}
+.choice.wrong{border-color:var(--red);background:rgba(192,57,43,.22);box-shadow:0 0 0 1px var(--red)}
+.choice.dim{opacity:.45}
+.choices.locked .choice{pointer-events:none}
+.feedback{margin-top:16px;border-radius:12px;padding:16px 18px;text-align:left;display:none;
+  animation:fadeUp .3s ease}
+.feedback.show{display:block}
+.feedback.good{background:rgba(46,158,91,.14);border:1px solid var(--green)}
+.feedback.bad{background:rgba(192,57,43,.12);border:1px solid var(--red)}
+.feedback .verdict{font-weight:700;font-size:1.05rem;margin-bottom:6px}
+.feedback.good .verdict{color:#7fd79b}.feedback.bad .verdict{color:#ef9a8f}
+.feedback .why{color:var(--cream-dim);font-size:.98rem;line-height:1.55}
+.nextbtn{width:100%;margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:.85rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;padding:16px;border-radius:12px;border:1.5px solid var(--gold);
+  background:transparent;color:var(--gold);cursor:pointer}
+
+/* summary */
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:16px}
+.stat{background:rgba(0,0,0,.28);border:1px solid var(--felt-line);border-radius:12px;padding:16px 8px;text-align:center}
+.stat .n{font-size:1.7rem;font-weight:700;color:var(--gold)}
+.stat .l{font-family:'IBM Plex Mono',monospace;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--cream-faint);margin-top:4px}
+.catrow{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:.8rem;
+  padding:10px 2px;border-bottom:1px dashed var(--felt-line);color:var(--cream-dim)}
+.catrow b{color:var(--cream)}
+footer{margin-top:34px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:.68rem;
+  color:var(--cream-faint);letter-spacing:.06em}
+footer a{color:var(--gold)}
+@media (max-width:400px){:root{--card-w:80px;--card-h:112px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Texas Hold'em · 6-max</span>
+    <h1>Preflop Trainer</h1>
+    <p class="sub">Drill preflop decisions until they're automatic.</p>
+  </header>
+
+  <!-- SETUP -->
+  <div class="view active" id="v-setup">
+    <div class="panel">
+      <h2>Start a drill</h2>
+      <p class="hint">Real spots, standard ranges. Pick an action, get instant feedback with the why.</p>
+      <div class="modelabel">Scenario</div>
+      <div class="modes" id="modeBtns">
+        <button class="modebtn sel" data-mode="mixed">Mixed<small>everything</small></button>
+        <button class="modebtn" data-mode="rfi">Raise first in<small>unopened pots</small></button>
+        <button class="modebtn" data-mode="vsopen">Facing an open<small>3-bet / call / fold</small></button>
+        <button class="modebtn" data-mode="vs3bet">Facing a 3-bet<small>4-bet / call / fold</small></button>
+      </div>
+      <div class="modelabel">Drill length</div>
+      <div class="lenrow" id="lenBtns">
+        <button class="modebtn sel" data-len="10">10</button>
+        <button class="modebtn" data-len="20">20</button>
+        <button class="modebtn" data-len="0">Endless</button>
+      </div>
+      <button class="bigbtn" id="startBtn">Deal me in</button>
+    </div>
+  </div>
+
+  <!-- DRILL -->
+  <div class="view" id="v-drill">
+    <div class="hud">
+      <span id="hudProg">Q <b>1</b>/10</span>
+      <span class="streak" id="hudStreak">🔥 <b>0</b></span>
+      <span id="hudAcc"><b>–</b> acc</span>
+    </div>
+    <div class="spot">
+      <div class="posrow">
+        <span class="posbadge" id="posBadge">CO</span>
+        <span class="stackbadge" id="stackBadge">100bb effective</span>
+      </div>
+      <div class="cards" id="cards"></div>
+      <div class="actionline" id="actionLine"></div>
+      <p class="question">What's your play?</p>
+      <div class="choices" id="choices"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="nextbtn" id="nextBtn" style="display:none">Next spot →</button>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="view" id="v-sum">
+    <div class="panel">
+      <h2>Session complete</h2>
+      <p class="hint" id="sumLine"></p>
+      <div class="stats">
+        <div class="stat"><div class="n" id="stAcc">–</div><div class="l">accuracy</div></div>
+        <div class="stat"><div class="n" id="stStreak">0</div><div class="l">best streak</div></div>
+        <div class="stat"><div class="n" id="stQ">0</div><div class="l">spots</div></div>
+      </div>
+      <div class="modelabel">By scenario</div>
+      <div id="catStats"></div>
+      <button class="bigbtn" id="againBtn">Run it back</button>
+      <button class="nextbtn" id="changeBtn" style="margin-top:10px">Change drill</button>
+    </div>
+  </div>
+
+  <footer>No solver. No account. Just reps. · <a href="https://github.com/BlueSaNGG/preflop-trainer" target="_blank" rel="noopener">Source</a></footer>
+</div>
+
+<script>
+/* ================= question bank =================
+   6-max, standard GTO-ish ranges. Each spot has ONE clear answer. */
+const SUIT={s:'♠',h:'♥',d:'♦',c:'♣'};
+const BANK=[
+ // ---- RFI (unopened) ----
+ {cat:'rfi',pos:'UTG',hand:['As','Ah'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'Pocket aces print money from every position. Always open.'},
+ {cat:'rfi',pos:'UTG',hand:['7c','2d'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Fold',why:'72o is the worst hand in poker. Even the button folds this.'},
+ {cat:'rfi',pos:'UTG',hand:['As','Qs'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'AQs is a premium. Open from UTG every time.'},
+ {cat:'rfi',pos:'UTG',hand:['Kc','Jd'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Fold',why:'KJo looks pretty but is dominated too often from early position. Standard fold UTG.'},
+ {cat:'rfi',pos:'UTG',hand:['7h','7d'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'All pocket pairs 77+ open UTG. Pairs play themselves.'},
+ {cat:'rfi',pos:'UTG',hand:['As','5s'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'Suited aces are standard UTG opens — nut flush potential plus wheel straight.'},
+ {cat:'rfi',pos:'MP',hand:['6c','6h'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'66+ opens from MP. Small pairs want to see cheap flops or take it down preflop.'},
+ {cat:'rfi',pos:'MP',hand:['Qh','Jd'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Fold',why:'QJo is a fold from MP — too many players behind who dominate you.'},
+ {cat:'rfi',pos:'MP',hand:['Ad','Ts'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'ATs is a clear MP open. Suited broadway, plays great postflop.'},
+ {cat:'rfi',pos:'CO',hand:['Ks','9s'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'K9s is a standard CO open. Only the button left to worry about behind you.'},
+ {cat:'rfi',pos:'CO',hand:['Qc','Td'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Fold',why:'Offsuit broadways below QJ are CO folds. The kicker problem is real.'},
+ {cat:'rfi',pos:'CO',hand:['Ts','8s'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'Suited connectors open from the cutoff — steal equity plus playability.'},
+ {cat:'rfi',pos:'BTN',hand:['Jc','6c'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'The button opens ~50% of hands. J6s is comfortably inside.'},
+ {cat:'rfi',pos:'BTN',hand:['Ks','2s'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'Any suited king opens on the button. Position is everything.'},
+ {cat:'rfi',pos:'BTN',hand:['7d','2c'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Fold',why:'Even the button has a bottom. 72o is an always-fold.'},
+ {cat:'rfi',pos:'BTN',hand:['4h','3d'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Fold',why:'43o misses the button range. Fold and wait for a better steal.'},
+ {cat:'rfi',pos:'SB',hand:['Ah','8d'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'SB opens ~40%. A8o is a standard small-blind open.'},
+ {cat:'rfi',pos:'SB',hand:['Kc','5h'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Fold',why:'Weak offsuit kings are SB folds — you\'ll be out of position with a dominated hand.'},
+ // ---- facing an open ----
+ {cat:'vsopen',pos:'BTN',hand:['As','Qs'],stack:100,facing:'CO opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'3-bet',why:'AQs is a value 3-bet on the button. Build the pot in position.'},
+ {cat:'vsopen',pos:'BTN',hand:['7s','7c'],stack:100,facing:'CO opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'Call',why:'77 wants to set-mine in position. 100bb deep, implied odds are there.'},
+ {cat:'vsopen',pos:'BTN',hand:['As','5s'],stack:100,facing:'CO opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'3-bet',why:'A5s is the classic 3-bet bluff — blocker to AA/AK plus suited wheel potential.'},
+ {cat:'vsopen',pos:'BTN',hand:['Kc','Jd'],stack:100,facing:'CO opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'Call',why:'KJo plays fine as a call in position. 3-betting turns it into a bluff you don\'t need.'},
+ {cat:'vsopen',pos:'BTN',hand:['9h','4c'],stack:100,facing:'CO opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'Fold',why:'94o has no business continuing. Fold and move on.'},
+ {cat:'vsopen',pos:'BB',hand:['Kc','Qs'],stack:100,facing:'BTN opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'3-bet',why:'KQs is a value 3-bet from the BB vs a wide button range.'},
+ {cat:'vsopen',pos:'BB',hand:['8h','8d'],stack:100,facing:'BTN opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'Call',why:'88 defends by calling — set-mine and realize equity with position discount (you close action).'},
+ {cat:'vsopen',pos:'BB',hand:['Ah','Td'],stack:100,facing:'BTN opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'3-bet',why:'ATo is a standard BB 3-bet vs BTN. Ace blocker, and you hate playing it passively out of position.'},
+ {cat:'vsopen',pos:'BB',hand:['Jc','8c'],stack:100,facing:'BTN opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'Call',why:'J8s is a fine BB defend — suited, connected, getting a discount to close the action.'},
+ {cat:'vsopen',pos:'BB',hand:['Kc','Qd'],stack:100,facing:'UTG opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'Fold',why:'KQo is dominated by UTG\'s tight range (AQ, AK, QQ+). Disciplined fold even getting a price.'},
+ {cat:'vsopen',pos:'BB',hand:['9s','9h'],stack:100,facing:'UTG opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'Call',why:'99 set-mines vs the UTG range. Deep enough to chase the set.'},
+ {cat:'vsopen',pos:'SB',hand:['As','Js'],stack:100,facing:'BTN opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'3-bet',why:'AJs is a 3-bet from the SB — you don\'t want to play this out of position in a bloated multiway pot.'},
+ {cat:'vsopen',pos:'MP',hand:['As','Ks'],stack:100,facing:'UTG opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'3-bet',why:'AKs is always a 3-bet. No slowplaying premiums.'},
+ {cat:'vsopen',pos:'CO',hand:['Qc','Qd'],stack:100,facing:'MP opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'3-bet',why:'QQ is a value 3-bet all day. Charge the worse pairs and broadways.'},
+ {cat:'vsopen',pos:'MP',hand:['4d','4c'],stack:100,facing:'UTG opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'Call',why:'44 set-mines vs UTG. You need ~15:1 implied odds — 100bb deep, you have them.'},
+ {cat:'vsopen',pos:'BTN',hand:['5c','5d'],stack:40,facing:'CO opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'Fold',why:'At 40bb the implied odds to set-mine are gone. 55 becomes a fold — stack depth changes everything.'},
+ // ---- facing a 3-bet ----
+ {cat:'vs3bet',pos:'CO',hand:['As','Ks'],stack:100,facing:'You open CO, BTN 3-bets to 9bb',actions:['4-bet','Call','Fold'],correct:'4-bet',why:'AKs is a slam-dunk 4-bet. Never just call with the best drawing hand in poker.'},
+ {cat:'vs3bet',pos:'CO',hand:['Qh','Qc'],stack:100,facing:'You open CO, BTN 3-bets to 9bb',actions:['4-bet','Call','Fold'],correct:'4-bet',why:'QQ 4-bets for value vs a BTN 3-bet range full of worse pairs and AK.'},
+ {cat:'vs3bet',pos:'CO',hand:['As','Qs'],stack:100,facing:'You open CO, BTN 3-bets to 9bb',actions:['4-bet','Call','Fold'],correct:'Call',why:'AQs plays best as a call in position — keeps the 3-bet bluffs in and avoids bloating vs QQ+/AK.'},
+ {cat:'vs3bet',pos:'CO',hand:['Ts','Th'],stack:100,facing:'You open CO, BTN 3-bets to 9bb',actions:['4-bet','Call','Fold'],correct:'Call',why:'TT calls in position. Set-mine plus overpair equity — no need to 4-bet and face a shove.'},
+ {cat:'vs3bet',pos:'CO',hand:['Ah','Jd'],stack:100,facing:'You open CO, BTN 3-bets to 9bb',actions:['4-bet','Call','Fold'],correct:'Fold',why:'AJo is crushed by a BTN 3-bet value range. The disciplined fold saves you 9bb.'},
+ {cat:'vs3bet',pos:'CO',hand:['Kc','Qs'],stack:100,facing:'You open CO, BTN 3-bets to 9bb',actions:['4-bet','Call','Fold'],correct:'Call',why:'KQs is strong enough to continue in position but not to 4-bet. Call and play poker.'},
+ {cat:'vs3bet',pos:'BTN',hand:['7c','6c'],stack:100,facing:'You open BTN, BB 3-bets to 10bb',actions:['4-bet','Call','Fold'],correct:'Fold',why:'76s can\'t continue vs a BB 3-bet — no odds, dominated too often. Easy fold.'},
+ {cat:'vs3bet',pos:'UTG',hand:['Ah','Kd'],stack:100,facing:'You open UTG, MP 3-bets to 9bb',actions:['4-bet','Call','Fold'],correct:'4-bet',why:'AKo 4-bets even from UTG. Against a MP 3-bet range you\'re flipping at worst, ahead of bluffs.'},
+ {cat:'vs3bet',pos:'UTG',hand:['Jd','Jc'],stack:100,facing:'You open UTG, BTN 3-bets to 9bb',actions:['4-bet','Call','Fold'],correct:'Call',why:'JJ calls vs the BTN 3-bet — too strong to fold, and 4-betting folds out everything you beat.'},
+ // ---- short stacks ----
+ {cat:'rfi',pos:'BTN',hand:['Ks','Ts'],stack:20,facing:'Unopened pot',actions:['Open','Shove','Fold'],correct:'Open',why:'20bb on the button, KTs min-opens. Shoving is overkill — you want folds OR a playable hand, not just folds.'},
+ {cat:'rfi',pos:'SB',hand:['Ah','Jd'],stack:20,facing:'Unopened pot',actions:['Open','Shove','Fold'],correct:'Shove',why:'20bb in the SB, AJo is a profitable open-jam. Fold equity plus a hand that\'s live when called.'},
+ {cat:'rfi',pos:'BTN',hand:['4c','4d'],stack:20,facing:'Unopened pot',actions:['Open','Shove','Fold'],correct:'Open',why:'20bb button, 44 min-opens. Pairs don\'t need fold equity — they need to see flops cheaply.'},
+ {cat:'rfi',pos:'CO',hand:['2h','2c'],stack:40,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'22 still opens at 40bb from the CO. Short, but not that short.'},
+ {cat:'rfi',pos:'BTN',hand:['As','9s'],stack:40,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',why:'A9s is a comfortable button open at 40bb.'},
+ {cat:'vsopen',pos:'BB',hand:['Kc','Js'],stack:40,facing:'BTN opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'3-bet',why:'At 40bb, KJs becomes a 3-bet from the BB — shorter stacks favor aggression over calling.'},
+];
+
+/* ================= app ================= */
+const $=id=>document.getElementById(id);
+let mode='mixed', drillLen=10, deck=[], idx=0, right=0, streak=0, best=0, catStats={};
+let locked=false;
+
+document.querySelectorAll('#modeBtns .modebtn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#modeBtns .modebtn').forEach(x=>x.classList.remove('sel'));
+  b.classList.add('sel'); mode=b.dataset.mode;
+}));
+document.querySelectorAll('#lenBtns .modebtn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#lenBtns .modebtn').forEach(x=>x.classList.remove('sel'));
+  b.classList.add('sel'); drillLen=parseInt(b.dataset.len);
+}));
+function show(v){ document.querySelectorAll('.view').forEach(x=>x.classList.remove('active')); $('v-'+v).classList.add('active'); }
+
+$('startBtn').addEventListener('click',()=>{
+  const pool = mode==='mixed' ? BANK.slice() : BANK.filter(q=>q.cat===mode);
+  deck = pool.sort(()=>Math.random()-.5);
+  idx=0; right=0; streak=0; best=0; catStats={};
+  show('drill'); renderQ();
+});
+$('againBtn').addEventListener('click',()=>$('startBtn').click());
+$('changeBtn').addEventListener('click',()=>show('setup'));
+
+function cardHTML(c){
+  const r=c.slice(0,-1), s=c.slice(-1), red=(s==='h'||s==='d');
+  return `<div class="pcard${red?' red':''}"><div class="rank">${r}</div><div class="suit">${SUIT[s]}</div></div>`;
+}
+function renderQ(){
+  const q=deck[idx]; locked=false;
+  $('hudProg').innerHTML = drillLen? `Q <b>${idx+1}</b>/${drillLen}` : `Q <b>${idx+1}</b>`;
+  $('hudStreak').innerHTML=`🔥 <b>${streak}</b>`;
+  $('hudStreak').classList.toggle('hot',streak>=3);
+  $('hudAcc').innerHTML = idx? `<b>${Math.round(right/idx*100)}%</b> acc` : `<b>–</b> acc`;
+  $('posBadge').textContent='HERO · '+q.pos;
+  $('stackBadge').textContent=q.stack+'bb effective';
+  $('cards').innerHTML=q.hand.map(cardHTML).join('');
+  $('actionLine').innerHTML=q.facing.replace(/(opens|3-bets)/,'<span class="gold">$1</span>');
+  const ch=$('choices'); ch.classList.remove('locked'); ch.innerHTML='';
+  q.actions.forEach(a=>{
+    const b=document.createElement('button'); b.className='choice'; b.textContent=a;
+    b.addEventListener('click',()=>answer(a,b)); ch.appendChild(b);
+  });
+  $('feedback').className='feedback'; $('feedback').innerHTML='';
+  $('nextBtn').style.display='none';
+}
+function answer(a,btn){
+  if(locked) return; locked=true;
+  const q=deck[idx], ok=(a===q.correct);
+  document.querySelectorAll('.choice').forEach(c=>{
+    if(c.textContent===q.correct) c.classList.add('right');
+    else if(c===btn) c.classList.add('wrong');
+    else c.classList.add('dim');
+  });
+  $('choices').classList.add('locked');
+  if(ok){ right++; streak++; best=Math.max(best,streak); } else streak=0;
+  catStats[q.cat]=catStats[q.cat]||{r:0,n:0}; catStats[q.cat].n++; if(ok) catStats[q.cat].r++;
+  const fb=$('feedback');
+  fb.className='feedback show '+(ok?'good':'bad');
+  fb.innerHTML=`<div class="verdict">${ok?'✓ Correct':'✗ '+q.correct+' was the play'}</div><div class="why">${q.why}</div>`;
+  $('hudStreak').innerHTML=`🔥 <b>${streak}</b>`;
+  $('hudStreak').classList.toggle('hot',streak>=3);
+  $('hudAcc').innerHTML=`<b>${Math.round(right/(idx+1)*100)}%</b> acc`;
+  const last = drillLen ? (idx+1>=drillLen) : (idx+1>=deck.length);
+  $('nextBtn').textContent = last ? 'See results →' : 'Next spot →';
+  $('nextBtn').style.display='block';
+}
+$('nextBtn').addEventListener('click',()=>{
+  idx++;
+  const done = drillLen ? idx>=drillLen : idx>=deck.length;
+  if(done) summary(); else renderQ();
+});
+const CATNAMES={rfi:'Raise first in',vsopen:'Facing an open',vs3bet:'Facing a 3-bet'};
+function summary(){
+  show('sum');
+  const n = drillLen? drillLen : deck.length;
+  const acc=Math.round(right/n*100);
+  $('stAcc').textContent=acc+'%'; $('stStreak').textContent=best; $('stQ').textContent=n;
+  $('sumLine').textContent = acc>=85 ? 'Crushing it. Your preflop game is solid.'
+    : acc>=65 ? 'Good foundation — review the spots you missed.' : 'Leaky preflop. Run it back.';
+  $('catStats').innerHTML=Object.keys(CATNAMES).map(c=>{
+    const s=catStats[c];
+    return `<div class="catrow"><span>${CATNAMES[c]}</span><b>${s?Math.round(s.r/s.n*100)+'% ('+s.r+'/'+s.n+')':'–'}</b></div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
