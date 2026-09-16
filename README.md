@@ -17,6 +17,9 @@ This app treats preflop like flashcards: real 6-max spots, standard ranges, inst
 - **Detailed explanations** — every answer gets 2–3 sentences: the principle, why it applies, and the common mistake
 - **Source transparency** — each answer tagged ✓ chart-verified, solver consensus, or poker math, so you know how much to trust it
 - **Miss review** — session summary lists every spot you missed with the full explanation
+- **Progress tracking** — per-scenario all-time accuracy bars and a 14-day accuracy strip, stored locally
+- **🎯 Weak-spot mode** — drills your two worst scenarios by tracked accuracy
+- **Range visualizer** — every 100bb RFI answer shows the position's 13×13 opening range with your hand marked
 - **Streaks & accuracy** — session stats broken down by scenario so you see where you leak
 - **Drill lengths** — 10, 20, or endless
 - **Mobile-first** — big touch targets, works on the train
@@ -40,6 +43,6 @@ Single `index.html` — just open it. No build step.
 
 ## Roadmap
 
-- Spaced repetition: resurface your missed spots
-- Range visualizer: see villain's continuing range per spot
+- Shot-clock mode (10s per decision)
+- Shareable session summary
 - PLO / MTT push-fold packs
