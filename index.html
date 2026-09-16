@@ -105,11 +105,27 @@ h1{font-size:clamp(2rem,7vw,2.9rem);font-weight:700;letter-spacing:-.01em;line-h
 .catrow{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:.8rem;
   padding:10px 2px;border-bottom:1px dashed var(--felt-line);color:var(--cream-dim)}
 .catrow b{color:var(--cream)}
+.prow{display:flex;align-items:center;gap:10px;margin:8px 0;font-family:'IBM Plex Mono',monospace;font-size:.74rem}
+.prow span{width:118px;flex:none;color:var(--cream-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbar{flex:1;height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.pbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),#3f9e63)}
+.prow b{width:44px;text-align:right;color:var(--cream)}
+.prow small{width:34px;text-align:right;color:var(--cream-dim);opacity:.7}
+.pstrip{display:flex;align-items:flex-end;gap:4px;height:44px;margin:12px 0 4px}
+.pday{flex:1;min-width:0;border-radius:2px;background:rgba(46,125,75,.55)}
+.pday.empty{background:rgba(255,255,255,.07);height:8%!important}
+.pstrip-label{font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--cream-dim);opacity:.7;margin-bottom:6px}
 .missitem{border:1px solid var(--felt-line);border-radius:10px;padding:13px 15px;margin:10px 0;background:rgba(0,0,0,.22);text-align:left}
 .misshead{font-family:'IBM Plex Mono',monospace;font-size:.78rem;font-weight:600;color:var(--cream);margin-bottom:6px}
 .missline{font-family:'IBM Plex Mono',monospace;font-size:.76rem;color:var(--cream-dim);margin-bottom:8px}
 .missline b.r{color:#7fd79b}.missline b.w{color:#ef9a8f}
 .misswhy{font-size:.92rem;color:var(--cream-dim);line-height:1.55;font-style:italic}
+.rcap{font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.06em;color:var(--cream-dim);margin:14px 0 8px;text-transform:uppercase}
+.rcap .ing{color:#7fd79b}.rcap .me{color:var(--gold)}
+.rgrid{display:grid;grid-template-columns:repeat(13,1fr);gap:2px;max-width:240px;margin:0 auto}
+.rgrid i{aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,.055);min-width:0}
+.rgrid i.on{background:rgba(46,125,75,.6)}
+.rgrid i.hero{outline:2px solid var(--gold);outline-offset:-1px}
 footer{margin-top:34px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:.68rem;
   color:var(--cream-faint);letter-spacing:.06em}
 footer a{color:var(--gold)}
@@ -132,12 +148,17 @@ footer a{color:var(--gold)}
       <div class="modelabel">Scenario</div>
       <div class="modes" id="modeBtns">
         <button class="modebtn sel" data-mode="mixed">Mixed<small>everything</small></button>
+        <button class="modebtn" data-mode="weak">🎯 Weak spots<small>your worst scenarios</small></button>
         <button class="modebtn" data-mode="rfi">Raise first in<small>unopened pots</small></button>
         <button class="modebtn" data-mode="vsopen">Facing an open<small>3-bet / call / fold</small></button>
         <button class="modebtn" data-mode="vs3bet">Facing a 3-bet<small>4-bet / call / fold</small></button>
         <button class="modebtn" data-mode="bvb">Blind vs blind<small>SB/BB battles</small></button>
         <button class="modebtn" data-mode="pressure">Squeeze & 4-bet<small>advanced spots</small></button>
       </div>
+      <div class="modelabel">Your progress <span id="progTotal" style="color:var(--gold)"></span></div>
+      <div id="progBars"></div>
+      <div class="pstrip" id="progStrip"></div>
+      <div class="pstrip-label">last 14 days · height = accuracy</div>
       <div class="modelabel">Drill length</div>
       <div class="lenrow" id="lenBtns">
         <button class="modebtn sel" data-len="10">10</button>
@@ -213,7 +234,7 @@ const BANK=[
  {cat:'rfi',pos:'BTN',hand:['Ks','2s'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',src:'chart',why:'Any suited king opens on the button (K2s+). The nut-flush potential plus position makes even K2s profitable — you steal often, and when called you can flop the nuts. Button suitedness is nearly always an open.'},
  {cat:'rfi',pos:'BTN',hand:['7d','2c'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Fold',src:'chart',why:'Even the button has a bottom. 72o cannot make the nut straight effectively and has the worst high-card value — no range opens it. Button width does not extend to trash.'},
  {cat:'rfi',pos:'BTN',hand:['4h','3d'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Fold',src:'chart',why:'43o misses the button range — offsuit hands below T9o do not make it. Without suitedness or high cards, 43o relies on flopping two pair or trips, which happens too rarely to justify. Fold and wait one hand.'},
- {cat:'rfi',pos:'SB',hand:['Ah','8d'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',src:'chart',why:'The SB opens about 36% with a raise-or-fold strategy — never limp. A8o+ is in the range: the ace gives steal equity and domination of the weaker aces the BB defends with. Limping would give the BB a free flop; raising denies it.'},
+ {cat:'rfi',pos:'SB',hand:['Ah','8d'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Open',src:'chart',why:'The SB opens about 36% with a raise-or-fold strategy — never limp. A4o+ is in the range, so A8o is comfortable: the ace gives steal equity and domination of the weaker aces the BB defends with. Limping would give the BB a free flop; raising denies it.'},
  {cat:'rfi',pos:'SB',hand:['Kc','5h'],stack:100,facing:'Unopened pot',actions:['Open','Fold'],correct:'Fold',src:'chart',why:'Weak offsuit kings are SB folds — K9o+ is the cutoff. From the SB you are out of position for the whole hand, so you need a real edge to enter. K5o is dominated by every better king with no suitedness to fall back on.'},
  // ---- facing an open ----
  {cat:'vsopen',pos:'BTN',hand:['As','Qs'],stack:100,facing:'CO opens to 2.5bb',actions:['3-bet','Call','Fold'],correct:'3-bet',src:'chart',why:'AQs is in the BTN-vs-CO value 3-bet range (TT+, AQs+, AKo). In position with a premium you 3-bet to build the pot and isolate — flatting lets the blinds in cheap with hands that can outflop you. Premiums want a big pot in position.'},
@@ -293,11 +314,32 @@ document.querySelectorAll('#lenBtns .modebtn').forEach(b=>b.addEventListener('cl
   document.querySelectorAll('#lenBtns .modebtn').forEach(x=>x.classList.remove('sel'));
   b.classList.add('sel'); drillLen=parseInt(b.dataset.len);
 }));
-function show(v){ document.querySelectorAll('.view').forEach(x=>x.classList.remove('active')); $('v-'+v).classList.add('active'); }
+function show(v){ document.querySelectorAll('.view').forEach(x=>x.classList.remove('active')); $('v-'+v).classList.add('active'); if(v==='setup')renderProgress(); }
+function renderProgress(){
+  const st=getStats();
+  let totA=0,totR=0;
+  $('progBars').innerHTML=Object.keys(CATNAMES).map(c=>{
+    const s=st[c]||{a:0,r:0}; totA+=s.a; totR+=s.r;
+    const pct=s.a?Math.round(s.r/s.a*100):null;
+    return '<div class="prow"><span>'+CATNAMES[c]+'</span><div class="pbar"><i style="width:'+(pct||0)+'%"></i></div><b>'+(pct===null?'–':pct+'%')+'</b><small>'+s.a+'</small></div>';
+  }).join('');
+  $('progTotal').textContent=totA?('· '+totR+'/'+totA+' · '+Math.round(totR/totA*100)+'%'):'· no data yet';
+  const h=getHist(),days=[];
+  for(let d=13;d>=0;d--){const dt=new Date(Date.now()-d*864e5).toISOString().slice(0,10);days.push({dt:dt,e:h[dt]||null});}
+  $('progStrip').innerHTML=days.map(o=>{
+    if(!o.e)return '<i class="pday empty" title="'+o.dt+' · no play"></i>';
+    const p=Math.round(o.e.r/o.e.a*100);
+    return '<i class="pday" style="height:'+Math.max(10,p)+'%" title="'+o.dt+' · '+p+'% ('+o.e.r+'/'+o.e.a+')"></i>';
+  }).join('');
+}
 
 /* spaced repetition: misses resurface first */
 const qkey = q => q.pos+'|'+q.hand.join('')+'|'+q.facing;
 function getMisses(){ try{ return JSON.parse(localStorage.getItem('ic_pf_misses')||'{}'); }catch(e){ return {}; } }
+function getStats(){ try{ return JSON.parse(localStorage.getItem('ic_pf_stats')||'{}'); }catch(e){ return {}; } }
+function saveStats(s){ localStorage.setItem('ic_pf_stats', JSON.stringify(s)); }
+function getHist(){ try{ return JSON.parse(localStorage.getItem('ic_pf_hist')||'{}'); }catch(e){ return {}; } }
+function saveHist(h){ localStorage.setItem('ic_pf_hist', JSON.stringify(h)); }
 function saveMisses(m){ localStorage.setItem('ic_pf_misses', JSON.stringify(m)); }
 function buildDeck(pool){
   const misses = getMisses();
@@ -310,7 +352,18 @@ function buildDeck(pool){
   return first.concat(merged);
 }
 $('startBtn').addEventListener('click',()=>{
-  const pool = mode==='mixed' ? BANK.slice() : mode==='pressure' ? BANK.filter(q=>q.cat==='squeeze'||q.cat==='vs4bet') : BANK.filter(q=>q.cat===mode);
+  let pool;
+  if(mode==='weak'){
+    const st=getStats();
+    const ranked=Object.keys(CATNAMES)
+      .map(c=>({c:c,s:st[c]||{a:0,r:0}}))
+      .filter(o=>o.s.a>=3)
+      .sort((x,y)=>(x.s.r/x.s.a)-(y.s.r/y.s.a));
+    const weakCats=ranked.slice(0,2).map(o=>o.c);
+    pool = weakCats.length ? BANK.filter(q=>weakCats.includes(q.cat)) : BANK.slice();
+  } else if(mode==='mixed'){ pool=BANK.slice(); }
+  else if(mode==='pressure'){ pool=BANK.filter(q=>q.cat==='squeeze'||q.cat==='vs4bet'); }
+  else { pool=BANK.filter(q=>q.cat===mode); }
   deck = buildDeck(pool);
   idx=0; right=0; streak=0; best=0; catStats={}; sessionMisses=[];
   show('drill'); renderQ();
@@ -350,6 +403,7 @@ function answer(a,btn){
     else c.classList.add('dim');
   });
   $('choices').classList.add('locked');
+  const st=getStats(); const sc=st[q.cat]||{a:0,r:0}; sc.a++; if(ok)sc.r++; st[q.cat]=sc; saveStats(st);
   if(ok){ right++; streak++; best=Math.max(best,streak);
     const m=getMisses(); if(m[qkey(q)]){ delete m[qkey(q)]; saveMisses(m); }
   } else { streak=0;
@@ -359,7 +413,8 @@ function answer(a,btn){
   catStats[q.cat]=catStats[q.cat]||{r:0,n:0}; catStats[q.cat].n++; if(ok) catStats[q.cat].r++;
   const fb=$('feedback');
   fb.className='feedback show '+(ok?'good':'bad');
-  fb.innerHTML=`<div class="verdict">${ok?'\u2713 Correct':'\u2717 '+q.correct+' was the play'} <span class="srctag">${SRCLABEL[q.src]||''}</span></div><div class="why">${q.why}</div>`;
+  const grid = (q.cat==='rfi' && q.stack===100) ? rangeGridHTML(q.pos, q.hand) : '';
+  fb.innerHTML=`<div class="verdict">${ok?'\u2713 Correct':'\u2717 '+q.correct+' was the play'} <span class="srctag">${SRCLABEL[q.src]||''}</span></div><div class="why">${q.why}</div>`+grid;
   $('hudStreak').innerHTML=`🔥 <b>${streak}</b>`;
   $('hudStreak').classList.toggle('hot',streak>=3);
   $('hudAcc').innerHTML=`<b>${Math.round(right/(idx+1)*100)}%</b> acc`;
@@ -374,8 +429,32 @@ $('nextBtn').addEventListener('click',()=>{
 });
 const CATNAMES={rfi:'Raise first in',vsopen:'Facing an open',vs3bet:'Facing a 3-bet',bvb:'Blind vs blind',squeeze:'Squeeze spots',vs4bet:'Facing a 4-bet'};
 const SRCLABEL={chart:'\u2713 chart-verified',consensus:'solver consensus',math:'poker math'};
+const RANGES={UTG:'1111100000000111100000000010110000000001001100000000000011000000000000100000000000001000000000000010000000000000100000000000001000000000000010000000000000100000000000001',MP:'1111110000000111110000000011111000000001001100000000100011000000000000110000000000001000000000000010000000000000100000000000001000000000000010000000000000100000000000001',CO:'1111111111111111111000000011111100000001111110000000111111100000010000111000001000001100000000000011000000000000110000000000001000000000000010000000000000100000000000001',BTN:'1111111111111111111111111111111111111001111111100000111111110000011111111100001100001110000110000011100010000000110001000000001100100000000010010000000000101000000000001',SB:'1111111111111111111111110011111111000001111111000000111111100000011000111000001000001100000100000011000010000000110001000000001100100000000010000000000000100000000000001'};
+function rangeGridHTML(pos, hand){
+  const g = RANGES[pos]; if(!g) return '';
+  const R = 'AKQJT98765432';
+  const r1 = hand[0].slice(0,-1), s1 = hand[0].slice(-1);
+  const r2 = hand[1].slice(0,-1), s2 = hand[1].slice(-1);
+  let hr, hc;
+  if(r1 === r2){ hr = R.indexOf(r1); hc = hr; }
+  else {
+    const hi = R.indexOf(r1) < R.indexOf(r2) ? r1 : r2;
+    const lo = hi === r1 ? r2 : r1;
+    if(s1 === s2){ hr = R.indexOf(hi); hc = R.indexOf(lo); }
+    else { hr = R.indexOf(lo); hc = R.indexOf(hi); }
+  }
+  const heroIdx = hr * 13 + hc;
+  let cells = '';
+  for(let k = 0; k < 169; k++){
+    cells += '<i class="' + ((g[k] === '1' ? 'on ' : '') + (k === heroIdx ? 'hero' : '')).trim() + '"></i>';
+  }
+  return '<div class="rcap">' + pos + ' open range · <span class="ing">in range</span> · <span class="me">your hand</span></div><div class="rgrid">' + cells + '</div>';
+}
 function summary(){
   show('sum');
+  const asked=right+sessionMisses.length;
+  const h=getHist(); const dk=new Date().toISOString().slice(0,10);
+  const e=h[dk]||{a:0,r:0}; e.a+=asked; e.r+=right; h[dk]=e; saveHist(h);
   const n = drillLen? drillLen : deck.length;
   const acc=Math.round(right/n*100);
   $('stAcc').textContent=acc+'%'; $('stStreak').textContent=best; $('stQ').textContent=n;
