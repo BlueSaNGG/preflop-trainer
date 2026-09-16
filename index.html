@@ -123,7 +123,8 @@ h1{font-size:clamp(2rem,7vw,2.9rem);font-weight:700;letter-spacing:-.01em;line-h
 .misswhy{font-size:.92rem;color:var(--cream-dim);line-height:1.55;font-style:italic}
 .rcap{font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.06em;color:var(--cream-dim);margin:14px 0 8px;text-transform:uppercase}
 .rcap .ing{color:#7fd79b}.rcap .me{color:var(--gold)}
-.rgrid{display:grid;grid-template-columns:repeat(13,1fr);gap:2px;max-width:240px;margin:0 auto}
+.rgrid{display:grid;grid-template-columns:auto repeat(13,1fr);gap:2px;max-width:260px;margin:0 auto}
+.rgrid i.rlab{background:none;font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:.55rem;color:var(--cream-dim);display:flex;align-items:center;justify-content:center}
 .rgrid i{aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,.055);min-width:0}
 .rgrid i.on{background:rgba(46,125,75,.6)}
 .rgrid i.hero{outline:2px solid var(--gold);outline-offset:-1px}
@@ -326,6 +327,8 @@ function renderProgress(){
     return '<div class="prow"><span>'+CATNAMES[c]+'</span><div class="pbar"><i style="width:'+(pct||0)+'%"></i></div><b>'+(pct===null?'–':pct+'%')+'</b><small>'+s.a+'</small></div>';
   }).join('');
   $('progTotal').textContent=totA?('· '+totR+'/'+totA+' · '+Math.round(totR/totA*100)+'%'):'· no data yet';
+  const wb=document.querySelector('#modeBtns [data-mode="weak"] small');
+  if(wb) wb.textContent=Object.keys(CATNAMES).some(c=>(st[c]||{a:0}).a>=3)?'your worst scenarios':'mixed until you have data';
   const h=getHist(),days=[];
   for(let d=13;d>=0;d--){const dt=new Date(Date.now()-d*864e5).toISOString().slice(0,10);days.push({dt:dt,e:h[dt]||null});}
   $('progStrip').innerHTML=days.map(o=>{
@@ -388,7 +391,7 @@ function renderQ(){
   $('reviewBadge').style.display = q._review ? 'inline-block' : 'none';
   $('stackBadge').textContent=q.stack+'bb effective';
   $('cards').innerHTML=q.hand.map(cardHTML).join('');
-  $('actionLine').innerHTML=q.facing.replace(/(opens|3-bets)/,'<span class="gold">$1</span>');
+  $('actionLine').innerHTML=q.facing.replace(/(opens|3-bets|4-bets)/,'<span class="gold">$1</span>');
   const ch=$('choices'); ch.classList.remove('locked'); ch.innerHTML='';
   q.actions.forEach(a=>{
     const b=document.createElement('button'); b.className='choice'; b.textContent=a;
@@ -447,9 +450,14 @@ function rangeGridHTML(pos, hand){
     else { hr = R.indexOf(lo); hc = R.indexOf(hi); }
   }
   const heroIdx = hr * 13 + hc;
-  let cells = '';
-  for(let k = 0; k < 169; k++){
-    cells += '<i class="' + ((g[k] === '1' ? 'on ' : '') + (k === heroIdx ? 'hero' : '')).trim() + '"></i>';
+  let cells = '<i class="rlab"></i>';
+  for(let k = 0; k < 13; k++) cells += '<i class="rlab">' + R[k] + '</i>';
+  for(let r = 0; r < 13; r++){
+    cells += '<i class="rlab">' + R[r] + '</i>';
+    for(let c = 0; c < 13; c++){
+      const k = r * 13 + c;
+      cells += '<i class="' + ((g[k] === '1' ? 'on ' : '') + (k === heroIdx ? 'hero' : '')).trim() + '"></i>';
+    }
   }
   return '<div class="rcap">' + pos + ' open range · <span class="ing">in range</span> · <span class="me">your hand</span></div><div class="rgrid">' + cells + '</div>';
 }
