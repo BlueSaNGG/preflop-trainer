@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Preflop Trainer — Drill until it's automatic</title>
 <meta name="description" content="A free, mobile-friendly Texas Hold'em preflop decision trainer. No solver needed.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -54,6 +54,7 @@ h1{font-size:clamp(2rem,7vw,2.9rem);font-weight:700;letter-spacing:-.01em;line-h
 
 /* drill */
 .hud{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 0;
+.quit{background:none;border:1px solid #5a4a2f;color:var(--mut);border-radius:8px;padding:2px 9px;font-size:12px;cursor:pointer}
   font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:var(--cream-dim)}
 .hud b{color:var(--cream)}
 .streak.hot{color:var(--gold);font-weight:700}
@@ -175,6 +176,7 @@ footer a{color:var(--gold)}
       <span id="hudProg">Q <b>1</b>/10</span>
       <span class="streak" id="hudStreak">🔥 <b>0</b></span>
       <span id="hudAcc"><b>–</b> acc</span>
+      <button id="quitBtn" class="quit" title="End drill">✕</button>
     </div>
     <div class="spot">
       <div class="posrow">
@@ -475,6 +477,8 @@ function summary(){
     mr.innerHTML='<div class="modelabel">Review</div><p class="empty">Clean sheet — nothing to review.</p>';
   }
 }
+renderProgress();
+$('quitBtn').addEventListener('click',()=>{ show('setup'); });
 </script>
 </body>
 </html>
