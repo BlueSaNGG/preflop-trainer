@@ -45,4 +45,3 @@ Single `index.html` — just open it. No build step.
 
 - Shot-clock mode (10s per decision)
 - Shareable session summary
-- PLO / MTT push-fold packs
