@@ -4,6 +4,12 @@ A free, mobile-friendly Texas Hold'em preflop practice tool.
 
 **Live:** https://bluesangg.github.io/preflop-trainer/
 
+## Why a trainer, not a calculator
+
+Equity calculators are a solved commodity — dozens of free ones exist, and a raw equity number doesn't tell you what to *do*. The biggest leak for beginning and intermediate players is preflop: the decisions are frequent, high-leverage, and entirely learnable through repetition.
+
+This app treats preflop like flashcards: real 6-max spots, standard ranges, instant feedback with the *why* behind every answer.
+
 ## Features
 
 - 73 training spots: opening, facing an open/3-bet/4-bet, blind battles and squeezes
